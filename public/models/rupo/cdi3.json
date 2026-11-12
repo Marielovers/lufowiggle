@@ -1,0 +1,157 @@
+{
+	"Version": 3,
+	"Parameters": [
+		{
+			"Id": "ParamX",
+			"GroupId": "",
+			"Name": "X"
+		},
+		{
+			"Id": "ParamY",
+			"GroupId": "",
+			"Name": "Y"
+		},
+		{
+			"Id": "mouthopen",
+			"GroupId": "",
+			"Name": "입여닫"
+		},
+		{
+			"Id": "Param",
+			"GroupId": "",
+			"Name": "몸앞으로"
+		},
+		{
+			"Id": "blink",
+			"GroupId": "",
+			"Name": "눈감"
+		},
+		{
+			"Id": "eyey",
+			"GroupId": "",
+			"Name": "eyey"
+		},
+		{
+			"Id": "brow",
+			"GroupId": "",
+			"Name": "눈썹 위아래"
+		},
+		{
+			"Id": "thighX",
+			"GroupId": "",
+			"Name": "허벅지X"
+		},
+		{
+			"Id": "thighY",
+			"GroupId": "",
+			"Name": "허벅지Y"
+		},
+		{
+			"Id": "toe",
+			"GroupId": "",
+			"Name": "발가락"
+		},
+		{
+			"Id": "hf1",
+			"GroupId": "",
+			"Name": "hf1"
+		},
+		{
+			"Id": "hf2",
+			"GroupId": "",
+			"Name": "hf2"
+		},
+		{
+			"Id": "hr1",
+			"GroupId": "",
+			"Name": "hr1"
+		},
+		{
+			"Id": "hr2",
+			"GroupId": "",
+			"Name": "hr2"
+		},
+		{
+			"Id": "arm",
+			"GroupId": "",
+			"Name": "arm"
+		},
+		{
+			"Id": "hy1",
+			"GroupId": "",
+			"Name": "hy1"
+		},
+		{
+			"Id": "hy2",
+			"GroupId": "",
+			"Name": "hy2"
+		},
+		{
+			"Id": "breastX1",
+			"GroupId": "",
+			"Name": "breastX1"
+		},
+		{
+			"Id": "breastX2",
+			"GroupId": "",
+			"Name": "breastX2"
+		},
+		{
+			"Id": "breastY1",
+			"GroupId": "",
+			"Name": "breastY1"
+		},
+		{
+			"Id": "breastY2",
+			"GroupId": "",
+			"Name": "breastY2"
+		},
+		{
+			"Id": "ear1",
+			"GroupId": "",
+			"Name": "ear1"
+		},
+		{
+			"Id": "ear2",
+			"GroupId": "",
+			"Name": "ear2"
+		},
+		{
+			"Id": "ear3",
+			"GroupId": "",
+			"Name": "ear3"
+		},
+		{
+			"Id": "ear4",
+			"GroupId": "",
+			"Name": "ear4"
+		},
+		{
+			"Id": "skrit1",
+			"GroupId": "",
+			"Name": "skrit1"
+		},
+		{
+			"Id": "skrit3",
+			"GroupId": "",
+			"Name": "skrit3"
+		},
+		{
+			"Id": "skrit4",
+			"GroupId": "",
+			"Name": "skrit4"
+		},
+		{
+			"Id": "skrit2",
+			"GroupId": "",
+			"Name": "skrit2"
+		}
+	],
+	"ParameterGroups": [],
+	"Parts": [
+		{
+			"Id": "Part",
+			"Name": "body.png"
+		}
+	]
+}
