@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffd6e8" />
+    <meta name="description" content="너무 세게 흔들어 버린 것이다! - Live2D 드래그·휴대폰 흔들기 웹" />
+    <title>너무 세게 흔들어 버린 것이다!</title>
+  </head>
+  <body>
+    <main class="app">
+      <div class="backdrop" aria-hidden="true">
+        <div class="glow glow-a"></div><div class="glow glow-b"></div>
+        <div class="glow glow-c"></div>
+        <div class="halo halo-a"></div><div class="halo halo-b"></div>
+        <span class="sparkle sparkle-one">✦</span><span class="sparkle sparkle-two">✧</span>
+        <span class="sparkle sparkle-three">✳</span><span class="sparkle sparkle-four">✦</span>
+      </div>
+
+      <div id="stage" aria-label="화면을 드래그하거나 휴대폰을 흔들면 반응하는 Live2D 캐릭터"></div>
+
+      <header class="header">
+        <div class="title-wrap">
+          <p class="eyebrow"><span aria-hidden="true">♡</span> RUPO · LIVE2D PLAYGROUND <span aria-hidden="true">♡</span></p>
+          <h1>너무 세게 흔들어 버린 것이다<span class="title-dot">!</span></h1>
+          <p class="subtitle">살살 흔들어 주세요… 정말로요!</p>
+        </div>
+        <div id="connection" class="connection" role="status">
+          <span class="status-dot" aria-hidden="true"></span><span id="load-state">모델 불러오는 중</span>
+        </div>
+      </header>
+
+      <aside id="control-panel" class="control-panel is-collapsed" aria-label="움직임 및 흔들기 설정">
+        <button id="panel-toggle" class="panel-toggle" type="button" aria-controls="panel-body" aria-expanded="false" aria-label="설정 메뉴 열기" title="설정 메뉴 열기">
+          <span id="panel-toggle-icon" aria-hidden="true">☰</span>
+        </button>
+        <div id="panel-body" class="panel-body" aria-hidden="true" inert>
+          <div class="panel-heading">
+            <span class="panel-kicker">CONTROL ROOM</span>
+            <h2>흔들흔들 <span aria-hidden="true">✿</span></h2>
+            <p>캐릭터를 직접 움직여 보세요.</p>
+          </div>
+
+          <div class="panel-section">
+            <span class="section-label">INTERACTION</span>
+            <button id="motion-btn" type="button" class="action primary" aria-pressed="false">
+              <span aria-hidden="true">◉</span><span id="motion-text">흔들기 활성화</span>
+            </button>
+            <p class="field-help desktop-hint">마우스 드래그로 X·Y 방향을 움직입니다.</p>
+            <p class="field-help mobile-hint">터치 드래그 또는 흔들기로 움직입니다.</p>
+          </div>
+
+          <div class="panel-section">
+            <span class="section-label">SETTINGS</span>
+            <label class="slider-label" for="sensitivity">드래그 감도 <output id="sensitivity-value">100%</output></label>
+            <input id="sensitivity" type="range" min="40" max="170" value="100" step="5" />
+            <label class="slider-label" for="shake-sensitivity">휴대폰 흔들기 감도 <output id="shake-sensitivity-value">1000%</output></label>
+            <input id="shake-sensitivity" type="range" min="100" max="2000" value="1000" step="50" />
+            <button id="reset-btn" type="button" class="action secondary"><span aria-hidden="true">↺</span> 중앙으로 초기화</button>
+          </div>
+
+          <div class="panel-section panel-section-last">
+            <span class="section-label">LIVE PARAMETERS</span>
+            <div class="params">
+              <span>X <b id="param-x">0.00</b></span>
+              <span>Y <b id="param-y">0.00</b></span>
+              <span>눈동자 Y <b id="param-eye">0.00</b></span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section id="loading" class="loading" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <strong>루포가 준비하고 있어요 <span aria-hidden="true">♡</span></strong>
+        <span>Live2D 모델 불러오는 중...</span>
+      </section>
+
+      <div class="bottom-hint">
+        <div class="hint-line" role="status" aria-live="polite">
+          <span class="hint-icon" aria-hidden="true">✿</span>
+          <span id="help-text">드래그하면 움직이고, 놓으면 부드럽게 돌아와요.</span>
+        </div>
+        <small class="shake-counter" aria-live="off">흔든 횟수 <strong id="shake-count">0</strong>회</small>
+      </div>
+    </main>
+    <link rel="stylesheet" href="/src/style.css" />
+    <script type="module">
+      import { initPanel } from '/src/panel.js';
+      initPanel({ panel: document.getElementById('control-panel'), toggle: document.getElementById('panel-toggle'), body: document.getElementById('panel-body') });
+      document.getElementById('loading').hidden = true;
+      document.getElementById('load-state').textContent = '모델 준비 완료';
+      document.getElementById('connection').classList.add('ready');
+      // Layout-only test; the packaged project uses the actual Live2D model.
+      document.getElementById('stage').innerHTML = '<div style="height:100%;width:100%;display:flex;justify-content:center;align-items:center;pointer-events:none"><div style="width:min(75%,360px);height:90%;border-radius:150px 150px 80px 80px;display:flex;align-items:center;justify-content:center;background:linear-gradient(165deg,#a470ad90,#f0a4baaa);font-size:15px;color:white;opacity:.64;">모델 표시 영역 (배치 테스트)</div></div>';
+    </script>
+  </body>
+</html>

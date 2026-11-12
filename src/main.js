@@ -10,6 +10,7 @@ const expression = new ExpressionController();
 const state = { x: 0, y: 0, energy: 0, blink: 0, mouthopen: 0, brow: 0, eyey: 0 };
 let character;
 let sensorEnabled = false;
+let sensorPermissionPending = false;
 let lastSensorReceived = 0;
 let currentPointer = null;
 let lastPointerPos = null;
@@ -82,49 +83,94 @@ function bindInput() {
 function onDeviceMotion(event) {
   lastSensorReceived = performance.now();
   const rotation = screen.orientation?.angle ?? window.orientation ?? 0;
+  const previousCount = motion.shakeCount;
   motion.acceptDeviceMotion(event, lastSensorReceived, rotation);
+  if (motion.shakeCount !== previousCount) {
+    $('shake-count').textContent = String(motion.shakeCount);
+  }
+}
+
+function isMobileDevice() {
+  const nav = navigator;
+  return Boolean(
+    nav.userAgentData?.mobile
+    || /Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent || '')
+    || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1) // iPadOS desktop UA
+    || (nav.maxTouchPoints > 0 && window.matchMedia?.('(pointer: coarse)').matches)
+  );
 }
 
 function setSensorButton() {
-  $('motion-btn').setAttribute('aria-pressed', String(sensorEnabled));
-  $('motion-text').textContent = sensorEnabled ? '흔들기 끄기' : '흔들기 활성화';
+  const intendedOn = sensorEnabled || sensorPermissionPending;
+  $('motion-btn').setAttribute('aria-pressed', String(intendedOn));
+  $('motion-text').textContent = sensorPermissionPending
+    ? '흔들기 ON · 권한 허용'
+    : sensorEnabled ? '흔들기 끄기' : '흔들기 활성화';
 }
 
-async function toggleSensors() {
-  if (sensorEnabled) {
-    sensorEnabled = false;
-    window.removeEventListener('devicemotion', onDeviceMotion);
-    setSensorButton();
-    notify('흔들기 입력을 끄고 드래그 모드로 돌아왔습니다.');
-    return;
-  }
+function stopSensors() {
+  sensorEnabled = false;
+  sensorPermissionPending = false;
+  window.removeEventListener('devicemotion', onDeviceMotion);
+  setSensorButton();
+}
+
+function listenToSensors() {
+  sensorPermissionPending = false;
+  sensorEnabled = true;
+  motion.hasGravityBaseline = false;
+  lastSensorReceived = 0;
+  window.removeEventListener('devicemotion', onDeviceMotion);
+  window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
+  setSensorButton();
+  notify('휴대폰 흔들기 자동 ON · 흔들기 감도 기본 10배 (드래그 감도는 그대로).');
+  setTimeout(() => {
+    if (sensorEnabled && !lastSensorReceived) {
+      notify('센서 데이터가 도착하지 않습니다. HTTPS 및 브라우저의 동작 센서 권한을 확인해 주세요.');
+    }
+  }, 2000);
+}
+
+async function enableSensors(userGesture = false) {
   if (!window.isSecureContext) {
-    notify('모바일 흔들기는 HTTPS에서 동작합니다. GitHub Pages에 업로드한 주소로 접속해 주세요.');
+    stopSensors();
+    notify('흔들기 기능은 HTTPS 주소에서 이용할 수 있습니다. 드래그는 정상 동작합니다.');
     return;
   }
   if (!('DeviceMotionEvent' in window)) {
-    notify('이 브라우저는 기기 모션 센서를 지원하지 않습니다. 드래그는 계속 사용할 수 있습니다.');
+    stopSensors();
+    notify('이 브라우저는 모션 센서를 지원하지 않습니다. 드래그는 정상 동작합니다.');
     return;
   }
-  try {
-    // iOS requires this call inside the user's tap gesture.
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      const permission = await DeviceMotionEvent.requestPermission();
-      if (permission !== 'granted') throw new Error('모션 센서 권한이 허용되지 않았습니다.');
+  // iOS/iPadOS Safari: browser requires a genuine user gesture for permission.
+  if (typeof window.DeviceMotionEvent.requestPermission === 'function') {
+    if (!userGesture) {
+      sensorPermissionPending = true;
+      setSensorButton();
+      notify('흔들기 기본 ON · iPhone/iPad에서는 왼쪽 ☰ 메뉴의 “흔들기 ON · 권한 허용”을 한 번 눌러 주세요.');
+      return;
     }
-    sensorEnabled = true;
-    motion.hasGravityBaseline = false;
-    lastSensorReceived = 0;
-    window.addEventListener('devicemotion', onDeviceMotion, { passive: true });
-    setSensorButton();
-    notify('흔들기 감지가 켜졌습니다. 휴대폰을 좌우·위아래로 흔들어 보세요.');
-    setTimeout(() => {
-      if (sensorEnabled && !lastSensorReceived) {
-        notify('센서 데이터가 도착하지 않습니다. 브라우저의 동작 및 방향 접근 허용 여부를 확인해 주세요.');
-      }
-    }, 2000);
-  } catch (error) {
-    notify(error instanceof Error ? error.message : '센서 권한을 받을 수 없습니다.');
+    try {
+      // Must be invoked directly from a click handler, before any await.
+      const permission = await window.DeviceMotionEvent.requestPermission();
+      if (permission !== 'granted') throw new Error('모션 센서 권한이 거부되었습니다.');
+    } catch (error) {
+      stopSensors();
+      notify(error instanceof Error ? error.message : '센서 권한을 받을 수 없습니다.');
+      return;
+    }
+  }
+  listenToSensors();
+}
+
+async function toggleSensors() {
+  if (sensorPermissionPending) {
+    await enableSensors(true);
+  } else if (sensorEnabled) {
+    stopSensors();
+    notify('흔들기 입력이 꺼졌습니다. 드래그는 계속 사용할 수 있습니다.');
+  } else {
+    await enableSensors(true);
   }
 }
 
@@ -141,6 +187,13 @@ function bindButtons() {
     motion.sensitivity = value / 100;
     $('sensitivity-value').value = `${value}%`;
   });
+  $('shake-sensitivity').addEventListener('input', (event) => {
+    const value = Number(event.target.value);
+    motion.shakeSensitivity = value / 100; // 1000% means original x10, drag unchanged.
+    $('shake-sensitivity-value').value = `${value}%`;
+  });
+  setSensorButton();
+  if (isMobileDevice()) void enableSensors(false); // Automatic ON where browsers allow it.
 }
 
 function animationLoop(now) {

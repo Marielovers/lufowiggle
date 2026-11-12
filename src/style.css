@@ -60,7 +60,7 @@ h1 {font-size:clamp(25px,2.6vw,36px);font-weight:900;line-height:1.24;letter-spa
 .mobile-hint {display:none;}
 .slider-label {display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:800;color:#88536f;}
 .slider-label output {font-variant-numeric:tabular-nums;color:#d4679f;}
-#sensitivity {width:100%;margin:15px 0 5px;accent-color:#e777b1;cursor:pointer;}
+#sensitivity, #shake-sensitivity {width:100%;margin:15px 0 5px;accent-color:#e777b1;cursor:pointer;}
 .params {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
 .params>span {display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;background:#fff;border:1px solid #f6dce9;border-radius:10px;padding:10px 4px;color:#a47791;font-size:10px;white-space:nowrap;}
 .params b {font-size:14px;font-variant-numeric:tabular-nums;color:#915677;}
@@ -123,9 +123,27 @@ h1 {font-size:clamp(25px,2.6vw,36px);font-weight:900;line-height:1.24;letter-spa
   .panel-section {padding:11px 3px 12px;}
   .section-label {margin-bottom:8px;}
   .action {min-height:39px;}
-  #sensitivity {margin:10px 0 3px;}
+  #sensitivity, #shake-sensitivity {margin:10px 0 3px;}
   .params>span {padding:7px 3px;}
   .panel-section-last {padding-bottom:13px;}
 }
 /* Centered, shrink-to-fit absolute boxes otherwise get only half the viewport. */
 .bottom-hint {width:max-content;max-width:calc(100vw - 28px);}
+
+/* Small, always-visible total beneath the bottom instruction. */
+.bottom-hint {flex-direction:column;gap:2px;padding-top:9px;padding-bottom:8px;}
+.hint-line {display:flex;align-items:center;justify-content:center;gap:9px;min-width:0;}
+.shake-counter {display:block;color:#b586a1;font-size:10px;font-weight:650;line-height:1.35;letter-spacing:.01em;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.shake-counter strong {color:#a75384;font-size:11px;font-weight:850;}
+@media (max-width:850px) {
+  #stage {bottom:79px;}
+  .shake-counter {font-size:9px;}
+  .shake-counter strong {font-size:10px;}
+}
+@media (max-height:520px) and (orientation:landscape) {
+  /* The guidance hides on short landscapes, but the small count remains visible. */
+  #stage {bottom:8px;}
+  .bottom-hint {display:flex;left:auto;right:max(12px,env(safe-area-inset-right));bottom:max(7px,env(safe-area-inset-bottom));transform:none;padding:4px 9px;box-shadow:none;background:rgba(255,255,255,.7);font-size:9px;}
+  .bottom-hint .hint-line {display:none;}
+  .shake-counter {font-size:9px;}
+}

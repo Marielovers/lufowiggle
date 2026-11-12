@@ -26,9 +26,13 @@ export class MotionController {
     this.targetY = 0;
     this.dragging = false;
     this.energy = 0;
-    this.sensitivity = 1;
+    this.sensitivity = 1; // Drag sensitivity only (unchanged default).
+    this.shakeSensitivity = 10; // Mobile shake response 10x the original default.
     this.lastMotionAt = 0;
     this.lastShakeAt = 0;
+    // One count per distinct physical gesture (debounced sensor samples).
+    this.shakeCount = 0;
+    this.lastCountedShakeAt = -Infinity;
     this.gravity = { x: 0, y: 0, z: 0 };
     this.hasGravityBaseline = false;
   }
@@ -65,11 +69,19 @@ export class MotionController {
 
   impulse(ax, ay, now = performance.now()) {
     if (this.dragging || now - this.lastShakeAt < 80) return false;
-    const magnitude = Math.hypot(ax, ay);
+    // Independent shake gain. The drag slider never changes this multiplier.
+    const gain = this.shakeSensitivity;
+    const magnitude = Math.hypot(ax, ay) * gain;
     if (magnitude < 3.2) return false;
     this.lastShakeAt = now;
-    this.vx = clamp(this.vx + ax * 0.087 * this.sensitivity, -4.8, 4.8);
-    this.vy = clamp(this.vy - ay * 0.087 * this.sensitivity, -4.8, 4.8);
+    // Sensor samples arrive dozens of times per second. Count a meaningful shake
+    // at most once every 380ms without altering the movement's 10x sensitivity.
+    if (Math.hypot(ax, ay) >= 0.85 && now - this.lastCountedShakeAt >= 380) {
+      this.shakeCount += 1;
+      this.lastCountedShakeAt = now;
+    }
+    this.vx = clamp(this.vx + ax * 0.087 * gain, -4.8, 4.8);
+    this.vy = clamp(this.vy - ay * 0.087 * gain, -4.8, 4.8);
     this.energy = clamp(this.energy + magnitude / 26, 0, 1);
     return true;
   }

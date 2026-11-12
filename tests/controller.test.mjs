@@ -40,7 +40,7 @@ test('release smoothly returns to neutral', () => {
 
 test('shake impulse is thresholded, debounced and clamped', () => {
   const m = new MotionController();
-  assert.equal(m.impulse(1, 2, 500), false);
+  assert.equal(m.impulse(0.1, 0.1, 500), false);
   assert.equal(m.impulse(8, -6, 500), true);
   assert.equal(m.impulse(-8, 6, 510), false);
   for (let i = 0; i < 4; i++) m.step(1 / 60);
@@ -80,4 +80,59 @@ test('all Live2D model3 references point to copied assets', () => {
     assert.ok(existsSync(resolve(dir, path)), `${path} missing`);
   }
   assert.equal(readFileSync(resolve(dir, refs.Moc)).subarray(0, 4).toString(), 'MOC3');
+});
+
+test('default shake gain is 10x without changing drag gain', () => {
+  const stronger = new MotionController();
+  const baseline = new MotionController();
+  baseline.shakeSensitivity = 1;
+  assert.equal(stronger.shakeSensitivity, 10);
+  assert.equal(stronger.sensitivity, 1);
+  stronger.startDrag();
+  baseline.startDrag();
+  stronger.dragBy(50, -30, 400, 400);
+  baseline.dragBy(50, -30, 400, 400);
+  near(stronger.targetX, baseline.targetX, 0.00001);
+  near(stronger.targetY, baseline.targetY, 0.00001);
+  stronger.stopDrag();
+  baseline.stopDrag();
+  stronger.reset();
+  baseline.reset();
+  assert.equal(stronger.impulse(0.5, 0, 1000), true, 'small shakes now register');
+  assert.equal(baseline.impulse(0.5, 0, 1000), false, 'original threshold unchanged for baseline');
+  assert.equal(stronger.impulse(3.3, 0, 1100), true);
+  assert.equal(baseline.impulse(3.3, 0, 1100), true);
+  near(stronger.vx, (0.5 + 3.3) * 0.087 * 10, 0.00001);
+  near(baseline.vx, 3.3 * 0.087, 0.00001);
+});
+
+
+test('shake counter counts distinct sensor gestures, not each sample', () => {
+  const m = new MotionController();
+  assert.equal(m.shakeCount, 0);
+  // First shake counts; samples within 380ms must not inflate the count.
+  assert.equal(m.impulse(2, 0, 1000), true);
+  assert.equal(m.shakeCount, 1);
+  assert.equal(m.impulse(-2, 0, 1100), true);
+  assert.equal(m.impulse(3, 0, 1200), true);
+  assert.equal(m.shakeCount, 1);
+  assert.equal(m.impulse(2, 0, 1380), true);
+  assert.equal(m.shakeCount, 2);
+  // Dragging does not count as a shake.
+  m.startDrag();
+  m.dragBy(100, 80, 400, 400);
+  assert.equal(m.impulse(10, 8, 2000), false);
+  assert.equal(m.shakeCount, 2);
+  m.stopDrag();
+  // Recentering does not erase the session's cumulative count.
+  m.reset();
+  assert.equal(m.shakeCount, 2);
+});
+
+test('tiny sensor noise does not count as shaking even with 10x movement sensitivity', () => {
+  const m = new MotionController();
+  assert.equal(m.impulse(0.5, 0, 1000), true);
+  assert.equal(m.shakeCount, 0);
+  assert.equal(m.acceptDeviceMotion({ acceleration: { x: 1.2, y: -1.2 } }, 1800), true);
+  assert.equal(m.shakeCount, 1);
 });

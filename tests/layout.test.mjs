@@ -9,7 +9,7 @@ const panel = readFileSync(new URL('../src/panel.js', import.meta.url), 'utf8');
 
 test('pink title and all settings live in accessible left sidebar', () => {
   assert.match(html, /<title>너무 세게 흔들어 버린 것이다!<\/title>/);
-  for (const id of ['control-panel', 'panel-toggle', 'panel-body', 'motion-btn', 'sensitivity', 'reset-btn', 'param-eye']) {
+  for (const id of ['control-panel', 'panel-toggle', 'panel-body', 'motion-btn', 'sensitivity', 'shake-sensitivity', 'reset-btn', 'param-eye']) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   assert.match(html, /aria-expanded="false"/);
@@ -32,4 +32,23 @@ test('collapsing panel disables settings focus while keeping toggle accessible',
   assert.match(panel, /body\.inert = collapsed/);
   assert.match(panel, /toggle\.setAttribute\('aria-expanded'/);
   assert.match(panel, /event\.key === 'Escape'/);
+});
+
+test('mobile motion auto-on and independent sliders are wired', () => {
+  assert.match(html, /id="sensitivity"[^>]*value="100"/);
+  assert.match(html, /id="shake-sensitivity"[^>]*value="1000"/);
+  assert.match(main, /if \(isMobileDevice\(\)\) void enableSensors\(false\)/);
+  assert.match(main, /sensorPermissionPending = true/);
+  assert.match(main, /requestPermission\(\)/);
+  assert.match(main, /motion\.shakeSensitivity = value \/ 100/);
+});
+
+
+test('small footer shake counter updates from real sensor events and stays visible in landscape', () => {
+  assert.match(html, /id="shake-count">0<\/strong>/);
+  assert.match(html, /class="shake-counter"/);
+  assert.match(main, /motion\.shakeCount !== previousCount/);
+  assert.match(main, /\$\('shake-count'\)\.textContent/);
+  assert.match(css, /\.bottom-hint \.hint-line \{display:none;\}/);
+  assert.match(css, /\.shake-counter \{font-size:9px;/);
 });
